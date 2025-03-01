@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Naruto - Shinobi no Sato</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f4e3;
+            color: #2f2f2f;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background-image: url('https://images.unsplash.com/photo-1611095562915-f14498d5a4f0?crop=entropy&cs=tinysrgb&fit=max&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDJ8fGxhdnxlbnwwfDB8fHww&ixlib=rb-1.2.1&q=80&w=1080');
+            background-size: cover;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #ff6600;
+            margin-bottom: 20px;
+        }
+
+        #username {
+            padding: 10px;
+            font-size: 18px;
+            margin: 10px 0;
+            border: 2px solid #ff6600;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff8000;
+        }
+
+        .option {
+            display: block;
+            margin: 5px;
+            padding: 10px;
+            background-color: #fff3e0;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+
+        .option:hover {
+            background-color: #f7bb00;
+        }
+
+        .correct {
+            background-color: #66bb6a;
+        }
+
+        .wrong {
+            background-color: #f44336;
+        }
+
+        #quiz, #result {
+            display: none;
+        }
+
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: red;
+            margin-top: 10px;
+        }
+
+        .header {
+            background-color: #ff6600;
+            padding: 20px;
+            color: white;
+            font-size: 24px;
+            border-radius: 10px;
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #2f2f2f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">Shinobi no Sato - Quiz Naruto</div>
+    <h1>Bienvenue dans le Quiz Naruto</h1>
+    <label>Entre ton pseudo : <input type="text" id="username"></label>
+    <button onclick="startQuiz()">Commencer</button>
+
+    <div id="quiz">
+        <p id="question" class="question"></p>
+        <div id="timer">Temps restant : 20s</div>
+        <button class="option" onclick="checkAnswer(0)"></button>
+        <button class="option" onclick="checkAnswer(1)"></button>
+        <button class="option" onclick="checkAnswer(2)"></button>
+    </div>
+
+    <div id="result">
+        <h2>Fin du Quiz !</h2>
+        <p id="finalScore"></p>
+    </div>
+
+    <footer>
+        Créé par Ready Ackerman
+    </footer>
+
+    <script>
+        let username = "";
+        let currentQuestion = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 20;
+
+        const questions = [
+            { question: "Quel est le nom du père de Minato Namikaze ?", options: ["Hashirama Senju", "Kawarama Namikaze", "Tobi", "Mito Uzumaki"], answer: 1 },
+            { question: "Quel est le nom du jutsu que Naruto utilise pour sceller l'âme d'un bijuu à l'intérieur de lui-même ?", options: ["Fūin Jutsu", "Kuchiyose no Jutsu", "Hiraishin no Jutsu", "Kyūbi no Fūin"], answer: 0 },
+            { question: "Quel est le nom de l'élément que contrôlait le clan Uchiha, lié à leur Sharingan ?", options: ["Raiton (élément foudre)", "Katon (élément feu)", "Suiton (élément eau)", "Fūton (élément vent)"], answer: 1 },
+            { question: "Dans l'arc de la guerre, quel est le nom de la technique que Madara Uchiha utilise pour contrôler l'armée des Zetsu ?", options: ["Rinnegan", "Izanagi", "Mugen Tsukuyomi", "Ten Tails Jutsu"], answer: 3 },
+            { question: "Quel est le nom de la technique que le premier Hokage, Hashirama Senju, utilise pour créer des forêts dans les combats ?", options: ["Kage Bunshin no Jutsu", "Mokuton Jutsu", "Doton Jutsu", "Gama Kichō no Jutsu"], answer: 1 },
+            { question: "Qui a écrit le *Icha Icha Paradise* que Jiraiya a écrit et que Kakashi adore lire ?", options: ["Minato Namikaze", "Jiraiya", "Tsunade", "Kakashi Hatake"], answer: 1 },
+            { question: "Quel est le nom du jutsu que Sakura Haruno utilise après avoir appris du 5e Hokage, Tsunade Senju ?", options: ["Tsunade's Strength", "Chōjū Giga", "Chidori", "Byakugou no Jutsu"], answer: 3 },
+            { question: "Quelle est la véritable identité de Tobi, l'antagoniste principal pendant la deuxième partie de la guerre des ninjas ?", options: ["Madara Uchiha", "Obito Uchiha", "Danzo Shimura", "Nagato (Pain)"], answer: 1 },
+            { question: "Quel est le nom de l’attaque que le 4e Hokage utilise pour sceller Kurama (le Kyūbi) dans Naruto ?", options: ["Rasengan", "Shiki Fūjin", "Hiraishin no Jutsu", "Senpō: Ōdama Rasengan"], answer: 1 },
+            { question: "Quel est le nom de l’arbre légendaire qui permet de créer la technique de *Jutsu des Dix Queues* ?", options: ["L’Arbre du Monde", "L’Arbre du Sage des Six Chemins", "L'Arbre de l'Origine", "L'Arbre de Chakra"], answer: 1 }
+        ];
+
+        function startQuiz() {
+            username = document.getElementById("username").value;
+            if (username === "") {
+                alert("Entre ton pseudo !");
+                return;
+            }
+            localStorage.setItem(username, 0);
+            document.getElementById("quiz").style.display = "block";
+            document.getElementById("result").style.display = "none";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestion >= questions.length) {
+                document.getElementById("quiz").style.display = "none";
+                document.getElementById("result").style.display = "block";
+                document.getElementById("finalScore").innerText = `Bravo ${username} ! Ton score final est de ${score}/${questions.length}.`;
+                return;
+            }
+
+            let q = questions[currentQuestion];
+            document.getElementById("question").innerText = q.question;
+            let buttons = document.getElementsByClassName("option");
+
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].innerText = q.options[i];
+                buttons[i].classList.remove("correct", "wrong");
+                buttons[i].disabled = false;
+            }
+
+            timeLeft = 20;
+            document.getElementById("timer").innerText = `Temps restant : ${timeLeft}s`;
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                alert("Temps écoulé !");
+                nextQuestion();
+                return;
+            }
+            timeLeft--;
+            document.getElementById("timer").innerText = `Temps restant : ${timeLeft}s`;
+        }
+
+        function checkAnswer(index) {
+            clearInterval(timer);
+            let q = questions[currentQuestion];
+            let buttons = document.getElementsByClassName("option");
+
+            if (index === q.answer) {
+                buttons[index].classList.add("correct");
+                score++;
+            } else {
+                buttons[index].classList.add("wrong");
+            }
+
+            for (let btn of buttons) {
+                btn.disabled = true;
+            }
+
+            localStorage.setItem(username, score);
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+    </script>
+
+</body>
+</html>
